@@ -1,4 +1,6 @@
 from menu import menu
+from fpdf import FPDF
+from datetime import datetime
 
 # mencatak menu makanan dan minuman
 print("-" * 60)
@@ -17,14 +19,20 @@ while ulang == "y":
     pesanan = input("Pilih Menu     : ")
     pesanan_minum = input("Pilih Minuman  : ")
     jumlah = int(input("Jumlah Pesanan : "))
-    
+
     #menyimpan pesanan
     daftar_pesanan.append([pesanan, pesanan_minum, jumlah])
 
     #opsi mengulang pesanan
     ulang = input("ingin tambah pesanan ? (y/n) : ")
 
-print("================ Struk Pembayaran ================")
+# Membuat PDF untuk struk pembayaran
+pdf = FPDF()
+pdf.add_page()
+pdf.set_font("Arial", size=12)
+
+pdf.cell(200, 10, txt="================ Struk Pembayaran ================", ln=True, align='C')
+
 total_bayar = 0
 for i, item in enumerate(daftar_pesanan, start=1):
     makanan, minuman, jumlah = item
@@ -34,7 +42,7 @@ for i, item in enumerate(daftar_pesanan, start=1):
     harga_makanan = menu['makanan'].get(makanan, 0)
     harga_minuman = menu['minuman'].get(minuman, 0)
 
-    # hitung subtotal untuk makanan dan minuman 
+    # hitung subtotal untuk makanan dan minuman
     subtotal_makanan = harga_makanan * jumlah
     subtotal_minuman = harga_minuman * jumlah
 
@@ -42,13 +50,21 @@ for i, item in enumerate(daftar_pesanan, start=1):
     total_item = subtotal_makanan + subtotal_minuman
     total_bayar += total_item
 
-    # cetak struk pembayaran
-    print(f"\npesanan ke-{i}")
-    print(f"Pesanan Makanan  : {makanan:<20} = Rp{harga_makanan}")
-    print(f"Pesanan Minuman  : {minuman:<20} = Rp{harga_minuman}")
-    print(f"Jumlah Pesanan   : {jumlah}")
-    print(f"jumlah Total     : Rp{total_item}")
+    # tambahkan ke PDF
+    pdf.cell(200, 10, txt=f"pesanan ke-{i}", ln=True)
+    pdf.cell(200, 10, txt=f"Pesanan Makanan  : {makanan:<20} = Rp{harga_makanan}", ln=True)
+    pdf.cell(200, 10, txt=f"Pesanan Minuman  : {minuman:<20} = Rp{harga_minuman}", ln=True)
+    pdf.cell(200, 10, txt=f"Jumlah Pesanan   : {jumlah}", ln=True)
+    pdf.cell(200, 10, txt=f"jumlah Total     : Rp{total_item}", ln=True)
+    pdf.cell(200, 10, txt="", ln=True)  # baris kosong
 
-print("=" * 50)
-print(f"TOTAL PEMBAYARAN : Rp {total_bayar}")
-print("=" * 50)
+pdf.cell(200, 10, txt="=" * 50, ln=True)
+pdf.cell(200, 10, txt=f"TOTAL PEMBAYARAN : Rp {total_bayar}", ln=True)
+pdf.cell(200, 10, txt="=" * 50, ln=True)
+
+# Simpan PDF dengan timestamp untuk menghindari overwrite
+timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+filename = f"struk_pembayaran_{timestamp}.pdf"
+pdf.output(filename)
+
+print(f"Struk pembayaran telah disimpan sebagai '{filename}'")
